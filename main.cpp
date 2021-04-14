@@ -60,7 +60,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			//window title
 			"Chaos Game",
 			//window style
-			WS_OVERLAPPEDWINDOW,
+			WS_MINIMIZEBOX | WS_SYSMENU,
 			//x pos, y pos, width, height
 			CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
 			//parent window, menu, application instance, window creation data
