@@ -2,6 +2,7 @@
 #include "implementation.h"
 #include <windows.h>
 #include <cstdio>
+#include <cmath>
 
 
 
@@ -17,11 +18,22 @@ HDC HdDesktop = GetDC(nullptr);
 HDC MemDc = CreateCompatibleDC(HdDesktop);
 HBITMAP HBitmap = CreateCompatibleBitmap(HdDesktop, WINDOW_WIDTH, WINDOW_HEIGHT);
 
+int numXYValues = 0;
+int* xValues = nullptr;
+int* yValues = nullptr;
+
+int currentPointX = rand() % WINDOW_WIDTH;
+int currentPointY = rand() % WINDOW_HEIGHT;
+
+void populateXYValsOnUnitCircle(int);
+void doStep(unsigned int);
+
 void init(HWND hwnd) {
 	SelectObject(MemDc, HBitmap);
 	mainMenu = GetMenu(hwnd);
+	populateXYValsOnUnitCircle(DEFAULT_CORNERS);
 #ifdef DEBUG
-	printf("Graphics and menu ref initialized\n");
+	printf("init done.\n");
 #endif
 }
 
@@ -39,6 +51,10 @@ void handleKeyPress(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 #endif
 	if (wParam == VK_SPACE)
 		flipToggle(0x01, COMPONENT_AUTO_STEP_TOGGLE, STRING_AUTO_STEP_TOGGLE);
+	else {
+		doStep(500);
+		RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
+	}
 }
 
 void handleWmCommand(HWND hwnd, WPARAM wParam, LPARAM lParam) {
@@ -54,6 +70,51 @@ void handleWmCommand(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 }
 
 void handlePaint(HWND hwnd) {
-	SetPixel(MemDc, 250, 250, 0x000000FF);
-	BitBlt(GetDC(hwnd), 0, 0, 700, 700, MemDc, 0, 0, SRCCOPY);
+	for (int i = 0; i < numXYValues; i++) {
+		//the corners, in magenta - they're 3x3 pixels.
+		for (int x = xValues[i] - 1; x <= xValues[i] + 1; x++) {
+			for (int y = yValues[i] - 1; y <= yValues[i] + 1; y++) {
+				SetPixel(MemDc, x, y, 0x00FF00FF);
+			}
+		}
+	}
+	BitBlt(GetDC(hwnd), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, MemDc, 0, 0, SRCCOPY);
+	if (toggles & 0x01) {
+		//...this works!?
+		doStep(30);
+		RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE);
+	}
+}
+
+void populateXYValsOnUnitCircle(int num) {
+	//realloc behaves like malloc if the pointer it's given is null - that is, it just allocates the requested
+	//memory somewhere. if the pointer is not null and points to an address allocated my realloc, malloc or calloc,
+	//then it either free()s that chunk and allocates a new one or extends the existing one.
+	xValues = (int*)realloc(xValues, num * sizeof(int));
+	yValues = (int*)realloc(yValues, num * sizeof(int));
+	numXYValues = num;
+	long double angle = 0;
+	long double increment = M_TWOPI / num;
+	for (int i = 0; i < num; i++) {
+		angle += increment;
+		xValues[i] = (int)(WINDOW_HWIDTH + WINDOW_HWIDTH * cosl(angle));
+		yValues[i] = (int)(WINDOW_HHEIGHT + WINDOW_HHEIGHT * sinl(angle));
+	}
+#ifdef DEBUG
+	//sanity check, our angle should now be pretty close to 2pi (not exactly cause floating point)
+	printf("expected: %f\n     got: %Lf\n", M_TWOPI, angle);
+#endif
+}
+
+void doStep(unsigned int n) {
+	for (int i = 0; i < n; i++) {
+		//filled points are an average gray.
+		SetPixel(MemDc, currentPointX, currentPointY, 0x00888888);
+
+		int cornerToMoveTowards = rand() % numXYValues;
+		currentPointX = (currentPointX + xValues[cornerToMoveTowards]) / 2;
+		currentPointY = (currentPointY + yValues[cornerToMoveTowards]) / 2;
+	}
+	//the "player" (or current pixel) is bright green
+	SetPixel(MemDc, currentPointX, currentPointY, 0x0000FF00);
 }

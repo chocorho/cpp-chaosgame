@@ -2,10 +2,10 @@
 #define IMPLEMENTATION_H
 #include <windows.h>
 
-void init(HWND hwnd);
+void init(HWND);
 
-void handleKeyPress(HWND hwnd, WPARAM wParam, LPARAM lParam);
-void handleWmCommand(HWND hwnd, WPARAM wParam, LPARAM lParam);
-void handlePaint(HWND hwnd);
+void handleKeyPress(HWND, WPARAM, LPARAM);
+void handleWmCommand(HWND, WPARAM, LPARAM);
+void handlePaint(HWND);
 
 #endif

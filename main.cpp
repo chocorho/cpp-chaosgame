@@ -14,10 +14,9 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case WM_KEYDOWN:
 			handleKeyPress(hwnd, wParam, lParam);
 			break;
-		case WM_PAINT: {
+		case WM_PAINT:
 			handlePaint(hwnd);
 			break;
-		}
 		default:
 			// msg not implemented - use default impl (ie, WM_CLOSE just calls DestroyWindow(hwnd) by default)
 #ifdef DEBUG
