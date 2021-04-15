@@ -1,9 +1,10 @@
 #include <windows.h>
 #include <cstdio>
-#include "resource.h"
+#include "config.h"
 #include "implementation.h"
+#include "consts.h"
 
-LRESULT CALLBACK WndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -28,26 +29,26 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return 0;
 }
 
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
-					LPSTR lpCmdLine, int nCmdShow) {
-	const char *g_szClassName = "CSProject";
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	WNDCLASSEX wc;
 
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
-	wc.lpfnWndProc = WndProc;
+	wc.lpfnWndProc = WindowProcedure;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+	wc.hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(ICON_ID));
+	wc.hIconSm = (HICON)LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(ICON_ID), IMAGE_ICON, 16, 16, 0);
+	//TODO: look into a drag cursor (and let user pan around)
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
+	//black background, to reduce stutter when re-drawing (ie when user moves window)
+	wc.hbrBackground = (HBRUSH)(COLOR_BTNTEXT + 1);
 	wc.lpszMenuName = MAKEINTRESOURCE(COMPONENT_MAINMENU);
-	wc.lpszClassName = g_szClassName;
-	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
+	wc.lpszClassName = WINDOW_CLASSNAME;
 
 	if (!RegisterClassEx(&wc)) {
-		printf("Could not create Window.\n");
+		printf("Could not create window class.\n");
 		return 1;
 	}
 
@@ -55,10 +56,10 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			//border style
 			0,
 			//window class (NOT related to oop!)
-			g_szClassName,
+			WINDOW_CLASSNAME,
 			//window title
-			"Chaos Game",
-			//window style
+			WINDOW_TITLE,
+			//window style - minimize and close buttons, but not resizable
 			WS_MINIMIZEBOX | WS_SYSMENU,
 			//x pos, y pos, width, height
 			CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
@@ -71,7 +72,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	}
 
 	ShowWindow(hwnd, nCmdShow);
-	UpdateWindow(hwnd);
 	init(hwnd);
 
 	MSG Msg;
