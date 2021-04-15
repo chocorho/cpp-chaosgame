@@ -15,6 +15,7 @@ unsigned char toggles = 0;
 HMENU mainMenu;
 
 HDC HdDesktop = GetDC(nullptr);
+HDC ourMainDc;
 HDC MemDc = CreateCompatibleDC(HdDesktop);
 HBITMAP HBitmap = CreateCompatibleBitmap(HdDesktop, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -31,6 +32,7 @@ void doStep(unsigned int);
 void init(HWND hwnd) {
 	SelectObject(MemDc, HBitmap);
 	mainMenu = GetMenu(hwnd);
+	ourMainDc = GetDC(hwnd);
 	populateXYValsOnUnitCircle(DEFAULT_CORNERS);
 #ifdef DEBUG
 	printf("init done.\n");
@@ -55,7 +57,9 @@ void handleKeyPress(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 		doStep(MANUALSTEP_ITERS_PER_PRESS);
 		RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
 	}else if (wParam == CLEAR_CANVAS_KEY && !(lParam & 0x40000000)) {
+		DeleteDC(MemDc);
 		MemDc = CreateCompatibleDC(HdDesktop);
+		DeleteObject(HBitmap);
 		HBitmap = CreateCompatibleBitmap(HdDesktop, WINDOW_WIDTH, WINDOW_HEIGHT);
 		SelectObject(MemDc, HBitmap);
 	}else if (wParam >= 0x32 && wParam <= 0x39) {
@@ -84,7 +88,7 @@ void handlePaint(HWND hwnd) {
 			}
 		}
 	}
-	BitBlt(GetDC(hwnd), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, MemDc, 0, 0, SRCCOPY);
+	BitBlt(ourMainDc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, MemDc, 0, 0, SRCCOPY);
 	if (toggles & 0x01) {
 		//...this works!?
 		doStep(AUTOSTEP_ITERS_PER_FRAME);
