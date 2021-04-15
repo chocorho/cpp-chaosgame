@@ -51,13 +51,19 @@ void handleKeyPress(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 #endif
 	if (wParam == VK_SPACE)
 		flipToggle(0x01, COMPONENT_AUTO_STEP_TOGGLE, STRING_AUTO_STEP_TOGGLE);
-	else {
-		doStep(500);
+	else if (wParam == DO_STEP_KEY && !(lParam & 0x40000000)) {
+		doStep(MANUALSTEP_ITERS_PER_PRESS);
 		RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
+	}else if (wParam == CLEAR_CANVAS_KEY && !(lParam & 0x40000000)) {
+		MemDc = CreateCompatibleDC(HdDesktop);
+		HBitmap = CreateCompatibleBitmap(HdDesktop, WINDOW_WIDTH, WINDOW_HEIGHT);
+		SelectObject(MemDc, HBitmap);
+	}else if (wParam >= 0x32 && wParam <= 0x39) {
+		populateXYValsOnUnitCircle((char)wParam - 0x30);
 	}
 }
 
-void handleWmCommand(HWND hwnd, WPARAM wParam, LPARAM lParam) {
+void handleWmCommand(HWND, WPARAM wParam, LPARAM) {
 	switch (LOWORD(wParam)) {
 		case COMPONENT_AUTO_STEP_TOGGLE:
 			flipToggle(0x01, COMPONENT_AUTO_STEP_TOGGLE, STRING_AUTO_STEP_TOGGLE);
@@ -81,7 +87,7 @@ void handlePaint(HWND hwnd) {
 	BitBlt(GetDC(hwnd), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, MemDc, 0, 0, SRCCOPY);
 	if (toggles & 0x01) {
 		//...this works!?
-		doStep(30);
+		doStep(AUTOSTEP_ITERS_PER_FRAME);
 		RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE);
 	}
 }
