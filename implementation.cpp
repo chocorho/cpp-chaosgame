@@ -2,7 +2,9 @@
 #include "consts.h"
 #include "implementation.h"
 #include <windows.h>
+#include <cstdint> /* necessary for compiling with int32_t on other machines */
 #include <cstdio>
+#define _USE_MATH_DEFINES /* necessary for finding M_PI on other machines */
 #include <cmath>
 
 
@@ -160,7 +162,7 @@ void populateCorners(int num) {
 	}
 
 	long double angle = 0;
-	long double increment = M_TWOPI / num;
+	long double increment = 2.0*M_PI / num;
 	for (int i = 0; i < num; i++) {
 		angle += increment;
 		cornerX[i] = (int)((clientArea.right / 2) + (clientArea.right / 2) * cosl(angle));
@@ -168,7 +170,7 @@ void populateCorners(int num) {
 	}
 #ifdef DEBUG
 	//sanity check, our angle should now be pretty close to 2pi (not exactly cause floating point)
-	printf("expected: %f\n     got: %Lf\n", M_TWOPI, angle);
+	printf("expected: %f\n     got: %Lf\n", 2.0*M_PI, angle);
 #endif
 }
 void doStep(unsigned int n) {
